@@ -11,7 +11,7 @@ cd dockerJenkins
 docker-compose up -d
 ```
 Verifique se o procedimento ocorreu corretamente:
-```bash
+```console
 docker ps
 ```
 > Saída:
@@ -54,9 +54,11 @@ Verificar log
 ### 4.1 Run Shell in Node
 **Descrição**
 
-(Freesytle project - Shel script - SSH)
+_(Freesytle project - Shel script - SSH)_
 
 Depois de realizar o tópico 3.1, você pode criar um projeto que execute uma sequência de comando em Shell em um nó.
+
+**Passos**
 
 1. Na página inicial do Jenkins, clique em "New item".
 2. Na ṕágina de criação em será aberta automaticamente, dê um nome ao projeto e escolha o tipo "Freestyle project" e clique em "OK" no canto inferior da página.
@@ -70,23 +72,41 @@ Depois de realizar o tópico 3.1, você pode criar um projeto que execute uma se
     - Adicione um passo, clicando em "Add step build"
     - Clique em "Execute Shell"
     - Cole o seguinte código:
-    ```shell
-    pwd
-    cd ~
-    pwd
-    echo "Hello World"
-    ```
+        ```shell
+        pwd
+        cd ~
+        pwd
+        echo "Hello World"
+        ```
 4. Na página do projeto, clique em "Build Now"
 5. Na mesma página, na seção "Build History", clique no build criado "#1"
 6. Por fim. na página do build, clique em "Console Output" e verifique se os comando em shell executaram corretamente.
 ** Imagem **
 
+
 ### 4.2 Push in GitHub --> Run in Node
 **Descrição**
 
-(Freesytle project - Shel script - Push in GitHub - SSH)
+_(Freesytle project - Shel script - Python - GitHub - SSH)_
 
 Automatizar a realização de tarefas em um nó depois que ocorre um push em um projeto no GitHub.
+
+**Passos**
+
+**Na máquina do nó**
+
+1. Acesse o nó e clone o projeto do GitHub
+```console
+git clone 
+```
+
+
+**Na interface do Jenkins**
+
+1. Na página inicial do Jenkins, clique em "New item".
+2. Na ṕágina de criação em será aberta automaticamente, dê um nome ao projeto e escolha o tipo "Freestyle project" e clique em "OK" no canto inferior da página.
+3. Na página de configuração em será aberta automaticamente, faça a seguinte configuração:
+- General
 
 
 ## Referências
