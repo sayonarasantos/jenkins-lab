@@ -21,7 +21,7 @@ docker ps
 > ****** &nbsp;&nbsp;&nbsp;&nbsp;jenkins/jenkins:2.235.4&nbsp;&nbsp;&nbsp;&nbsp;"/sbin/tini -- /usr/…"&nbsp;&nbsp;&nbsp;&nbsp;3 hours ago&nbsp;&nbsp;&nbsp;&nbsp;Up 3 hours&nbsp;&nbsp;&nbsp;&nbsp;0.0.0.0:8080->8080/tcp, 50000/tcp&nbsp;&nbsp;&nbsp;&nbsp;jenkins_s
 > 
 Extraia a senha para acessar a interface web:
-```
+```console
 cat jenkins_home/secrets/initialAdminPassword  
 ```
 E acesse a interface pelo endereço http://localhost:8080/
@@ -95,11 +95,12 @@ Automatizar a realização de tarefas em um nó depois que ocorre um push em um 
 
 **Na máquina do nó**
 
-1. Acesse o nó e clone o projeto do GitHub
+1. Acesse o nó, clone o projeto do GitHub e escolho o branch que deseja utilizar
 ```console
-git clone 
+git clone https://github.com/**your_user**/jenkins_lab.git
+git checkout master
 ```
-
+2. Fique com a conexão aberta para verificar se a execução automática, feita pelo Jenkins, ocorreu corretamente.
 
 **Na interface do Jenkins**
 
@@ -107,7 +108,13 @@ git clone
 2. Na ṕágina de criação em será aberta automaticamente, dê um nome ao projeto e escolha o tipo "Freestyle project" e clique em "OK" no canto inferior da página.
 3. Na página de configuração em será aberta automaticamente, faça a seguinte configuração:
 - General
-
+    - Selecione "Restrict where this project can be run"
+    - Logo abaixo, em "Label Expression", procure pelo nome do nó e o selecione
+- Source Code Management:
+    - Selecione "Git"
+        - Repositories: https://github.com/\*\*your_user**/jenkins_lab.git
+        - Credentials: Adicione as credenciais que tem acesso ao GitHub. No meu caso, adicionei um token (ver [Com criar token no GitHub](https://))
+        - Branch Specifier: */master
 
 ## Referências
 - Como instalar o Jenkins no Ubuntu 20.04. Disponível em: https://www.digitalocean.com/community/tutorials/how-to-install-jenkins-on-ubuntu-20-04-pt
