@@ -1,48 +1,44 @@
 # jenkins_lab
-## Descrição
+## 1 Descrição
 - Jenkins é um software de automação, que viabiliza a integração contínua e a entrega contínua (CI/CD) de projetos
-- Versão da imagem: 2.235.4
-- Link da imagem no DockerHub: https://hub.docker.com/layers/jenkins/jenkins/2.235.4/images/sha256-63af286d97cd125b7735e6dae7cb504956facf3be91c0d332f724ea528a74121?context=explore
+- Versão da imagem utilizada neste projeto: [2.235.4](https://hub.docker.com/layers/jenkins/jenkins/2.235.4/images/sha256-63af286d97cd125b7735e6dae7cb504956facf3be91c0d332f724ea528a74121?context=explore)
 
-## Instalação
+
+## 2 Instalação
 Na instalação por docker-compose, suba o container da aplicação Jenkins:
-```
+```console
 cd dockerJenkins
 docker-compose up -d
 ```
 Verifique se o procedimento ocorreu corretamente:
+```bash
+docker ps
 ```
-docker             ps
-```
-> Saida:
+> Saída:
 >
 > CONTAINER ID&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;IMAGE&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;COMMAND&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;CREATED&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;STATUS&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;PORTS&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;NAMES
 > 
 > ****** &nbsp;&nbsp;&nbsp;&nbsp;jenkins/jenkins:2.235.4&nbsp;&nbsp;&nbsp;&nbsp;"/sbin/tini -- /usr/…"&nbsp;&nbsp;&nbsp;&nbsp;3 hours ago&nbsp;&nbsp;&nbsp;&nbsp;Up 3 hours&nbsp;&nbsp;&nbsp;&nbsp;0.0.0.0:8080->8080/tcp, 50000/tcp&nbsp;&nbsp;&nbsp;&nbsp;jenkins_s
 > 
-
 Extraia a senha para acessar a interface web:
 ```
 cat jenkins_home/secrets/initialAdminPassword  
 ```
-Ao se conectar na interface web, registre um novo usuário e instale os plugis sugeridos.
+E acesse a interface pelo endereço http://localhost:8080/
+
+Ao se conectar ao Jenkins, registre um novo usuário e instale os plugis sugeridos.
 ** Imagem **
 
-## Alguns testes
-### 1 Push in GitHub --> Run in Node
-**Descrição**
 
-(Freesytle project - Shel script - Push in GitHub - Run in Node)
+## 3 Configurações
+### 3.1 Configurar acesso a um nó via SSH
+#### 3.1.1 Adicionar credencial SSH para acessar o nó
+Adicionar chave privada SSH que tem acesso ao nó...
 
-Automatizar a realização de tarefas em um nó depois que ocorre um push em um projeto no GitHub
+#### 3.1.2 Adicionar o novo nó
+Configurar nome, host, chave...
 
-#### 1.1 Adicionar credencial para acessar o nó
-Adicionar chave privada SSH que te acesso ao nó
-
-#### 1.2 Adicionar novo nó
-- configurar nome, host, chave...
-
-### Iniciar acesso ao nó
+#### 3.1.3 Iniciar acesso ao nó
 - Conectar-se ao Nó
 Clicar em "Launch Agent"
 ** Imagem **
@@ -53,6 +49,45 @@ Clicar em "Trust SSH host key">"Yes"
 Verificar log
 - Disconectar
 ** Imagem **
+
+## 4 Alguns testes
+### 4.1 Run Shell in Node
+**Descrição**
+
+(Freesytle project - Shel script - SSH)
+
+Depois de realizar o tópico 3.1, você pode criar um projeto que execute uma sequência de comando em Shell em um nó.
+
+1. Na página inicial do Jenkins, clique em "New item".
+2. Na ṕágina de criação em será aberta automaticamente, dê um nome ao projeto e escolha o tipo "Freestyle project" e clique em "OK" no canto inferior da página.
+3. Na página de configuração em será aberta automaticamente, faça a seguinte configuração:
+- General
+    - Selecione "Restrict where this project can be run"
+    - Logo abaixo, em "Label Expression", procure pelo nome do nó e o selecione
+- Source Code Management:
+    - Selecione "None"
+- Build:
+    - Adicione um passo, clicando em "Add step build"
+    - Clique em "Execute Shell"
+    - Cole o seguinte código:
+    ```shell
+    pwd
+    cd ~
+    pwd
+    echo "Hello World"
+    ```
+4. Na página do projeto, clique em "Build Now"
+5. Na mesma página, na seção "Build History", clique no build criado "#1"
+6. Por fim. na página do build, clique em "Console Output" e verifique se os comando em shell executaram corretamente.
+** Imagem **
+
+### 4.2 Push in GitHub --> Run in Node
+**Descrição**
+
+(Freesytle project - Shel script - Push in GitHub - SSH)
+
+Automatizar a realização de tarefas em um nó depois que ocorre um push em um projeto no GitHub.
+
 
 ## Referências
 - Como instalar o Jenkins no Ubuntu 20.04. Disponível em: https://www.digitalocean.com/community/tutorials/how-to-install-jenkins-on-ubuntu-20-04-pt
