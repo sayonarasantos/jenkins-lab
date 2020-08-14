@@ -47,7 +47,7 @@ Clicar em "Trust SSH host key">"Yes"
 *Imagem*
 - Verificar se o processo ocorreu corretamente
 Verificar log
-- Disconectar
+- Desconectar
 *Imagem*
 ---
 
