@@ -1,5 +1,10 @@
 pipeline {
-  agent none
+  agent {
+    node {
+      label 'Node1-ssh'
+    }
+
+  }
   stages {
     stage('s1') {
       steps {
