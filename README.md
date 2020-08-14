@@ -1,5 +1,6 @@
 # jenkins_lab
 ## 1 Descrição
+- Repositório para registrar algumas práticas com o Jenkins
 - **Jenkins** é um software de automação, que viabiliza a integração contínua e a entrega contínua (CI/CD) de projetos
 - Versão da imagem utilizada neste projeto: [2.235.4](https://hub.docker.com/layers/jenkins/jenkins/2.235.4/images/sha256-63af286d97cd125b7735e6dae7cb504956facf3be91c0d332f724ea528a74121?context=explore)
 ---
@@ -31,43 +32,60 @@ Ao se conectar ao Jenkins, registre um novo usuário e instale os plugis sugerid
 ---
 
 ## 3 Configurações
-### 3.1 Configurar acesso a um nó via SSH
+### 3.1 Configuração de acesso a um nó via SSH
 #### 3.1.1 Adicionar credencial SSH para acessar o nó
 Adicionar chave privada SSH que tem acesso ao nó...
+*Imagem*
 
 #### 3.1.2 Adicionar o novo nó
 Configurar nome, host, chave...
+*Imagem*
 
 #### 3.1.3 Iniciar acesso ao nó
-- Conectar-se ao Nó
-Clicar em "Launch Agent"
-*Imagem*
-- Habilitar como confiável a identidade do host
-Clicar em "Trust SSH host key">"Yes"
-*Imagem*
-- Verificar se o processo ocorreu corretamente
-Verificar log
-- Desconectar
+Conecte-se ao nó clicando em "Launch Agent"
 *Imagem*
 
-### 3.2 Configurar serviço Webhook com o Jenkins em rede privada
-Para configurar o gatinho de push través de Webhook do GitHub, você precisa ter um payload url para o GitHub postar as notificações de Push. O padrão do payload url do Jenkins é https://JENKINS_ENVIRONMENT/github-webhook/.
+Habilite como confiável a identidade do host clicando em "Trust SSH host key">"Yes"
+*Imagem*
+
+Verifique se o processo ocorreu corretamente olhando o log do nó
+*Imagem*
+
+Agora você fechar a desconectar
+*Imagem*
+
+### 3.2 Configuração de serviço Webhook com o Jenkins em rede privada
+#### 3.2.1 Configurar serviço de encaminhamento Webhook
+Para configurar o gatilho de push través de Webhook do GitHub, você precisa ter um payload url para o GitHub postar as notificações de Push. O padrão do payload url do Jenkins é https://JENKINS_ENVIRONMENT/github-webhook/.
+
 Como realizei os experimentos deste projeto em rede privada, não tinha IP público para o serviço Jenkins. Então, utilizei um serviço de encaminhamento de Webhook, o [Smee.io](https://smee.io/). A seguir, estão os passos realizados para utilizar o serviço:
 1. Gere um canal clicando em "Start a new channe" no site https://smee.io/. Isso lhe dará um URL exclusivo
 2. Copie a url para ser usado posteriormente
 2. O cliente smee já está configurado na imagem docker utilizada. Então basta executa o cliente no container
-```console
-docker container exec -it jenkins_s bash
-smee -u https://URL_GERADA_NO_SMEE --path /github-webhook/ --port 8080
-```
-Este último comando inicia o cliente smee e o aponta para o servidor Jenkins (executando na porta 8080). Para o canal entre o Github e o Jenkins permanecer funcionando, deixe o comando em execução.
-4. Em seguida, configure o webhook no seu projeto do Github (Settings/Webhooks)
-    4.1. Cole o URL “smee” que você copiou na etapa acima (https://URL_GERADA_NO_SMEE)
-    4.2 Escolha o tipo de conteúdo application/jsoncomo
-    4.3 Escolha para o o webhook gerar gatinho para qualquer tipo de evento (Send me everything)
-    4.4 Por fim, clique em "Add Webhook"
+    ```console
+    docker container exec -it jenkins_s bash
+    smee -u https://URL_GENERATED_BY_SMEE --path /github-webhook/ --port 8080
+    ```
+    > Este último comando inicia o cliente smee e o aponta para o servidor Jenkins (executando na porta 8080). Para o canal entre o Github e o Jenkins permanecer funcionando, deixe o comando em execução.
+    >
+    >
+    > Saída:
+    >
+    >Forwarding https://URL_GENERATED_BY_SMEE to http://127.0.0.1:8080/github-webhook/
+    >
+    >   Connected https://URL_GENERATED_BY_SMEE
 
-Agora você já pode configurar uma pipline (ou projeto) no Jenkins para receber gatilhos de push do Github.
+#### 3.2.2. Adicionar Webhook no GitHub
+_([GitHub](https://plugins.jenkins.io/github/))_
+
+Adicione um webhook do seu projeto do Github (Repositório do projeto > Settings > Webhooks) com a seguinte configuração
+- Cole o URL “smee” que você copiou na etapa acima (https://URL_GENERATED_BY_SMEE)
+- Escolha o tipo de conteúdo application/json
+- Selecione para o webhook gerar gatilho para qualquer tipo de evento (Send me everything)
+- Por fim, clique em "Add Webhook"
+
+Agora você já pode configurar um projeto no Jenkins para receber gatilhos de push do Github.
+
 ---
 
 ## 4 Alguns testes
@@ -105,31 +123,40 @@ Depois de realizar o tópico 3.1, você pode criar um projeto que execute uma se
 
 ### 4.2 Executar trabalhos depois de um push
 #### 4.2.1 Descrição
-_(Freesytle project - Shel script - Python - GitHub - SSH)_
+_(Freesytle project - Shel script - Python - [Git](https://plugins.jenkins.io/git/) - [GitHub](https://plugins.jenkins.io/github/) - SSH)_
 
 Automatizar a realização de tarefas em um nó depois que ocorre um push em um projeto no GitHub.
 
 #### 4.2.2 Passos
-##### 4.2.2.1 Na máquina do nó
-1. Acesse o nó, clone o projeto do GitHub e escolho o branch que deseja utilizar
-```console
-git clone https://github.com/YOUR_USER/jenkins_lab.git
-git checkout master
-```
-2. Fique com a conexão aberta para verificar se a execução automática, feita pelo Jenkins, ocorreu corretamente.
-
-##### 4.2.2.2 Na interface do Jenkins
-1. Na página inicial do Jenkins, clique em "New item".
-2. Na ṕágina de criação em será aberta automaticamente, dê um nome ao projeto e escolha o tipo "Freestyle project" e clique em "OK" no canto inferior da página.
-3. Na página de configuração em será aberta automaticamente, faça a seguinte configuração:
+Na interface do Jenkins
+1. Configure o Webhook no Github (tópico 3.2.2.)
+2. Na página inicial do Jenkins, clique em "New item"
+3. Na página de criação que será aberta automaticamente, dê um nome ao projeto e escolha o tipo "Freestyle project" e clique em "OK" no canto inferior da página
+4. Na página de configuração que será aberta automaticamente, faça a seguinte configuração:
 - General
     - Selecione "Restrict where this project can be run"
     - Logo abaixo, em "Label Expression", procure pelo nome do nó e o selecione
-- Source Code Management:
+- Source Code Management
     - Selecione "Git"
         - Repositories: https://github.com/YOUR_USER/jenkins_lab.git
         - Credentials: Adicione as credenciais que tem acesso ao GitHub. No meu caso, adicionei um token (ver [Com criar token no GitHub](https://))
         - Branch Specifier: */master
+- Build Triggers
+    - Selecione "GitHub hook trigger for GITScm polling"
+- Build:
+    - Adicione um passo, clicando em "Add step build"
+    - Clique em "Execute Shell"
+    - Cole o seguinte código:
+        ```shell
+        pwd
+        cd projects
+        python projects/hw.py
+        ```
+5. Faça um push no repositório do GitHub
+6. Execute o projeto em Projeto > "Build now"
+7. Verifique o log da execução me Projeto > Número do build > "Console Output"
+*Imagem*
+
 ---
 
 ## Referências
