@@ -8,7 +8,7 @@
 Na instalação por docker-compose, suba o container da aplicação Jenkins:
 ```console
 cd jenkins_lab/dockerJenkins
-docker-compose up -d
+docker-compose up -d --build
 ```
 Verifique se o procedimento ocorreu corretamente:
 ```console
@@ -49,6 +49,25 @@ Clicar em "Trust SSH host key">"Yes"
 Verificar log
 - Desconectar
 *Imagem*
+
+### 3.2 Configurar serviço Webhook com o Jenkins em rede privada
+Para configurar o gatinho de push través de Webhook do GitHub, você precisa ter um payload url para o GitHub postar as notificações de Push. O padrão do payload url do Jenkins é https://JENKINS_ENVIRONMENT/github-webhook/.
+Como realizei os experimentos deste projeto em rede privada, não tinha IP público para o serviço Jenkins. Então, utilizei um serviço de encaminhamento de Webhook, o [Smee.io](https://smee.io/). A seguir, estão os passos realizados para utilizar o serviço:
+1. Gere um canal clicando em "Start a new channe" no site https://smee.io/. Isso lhe dará um URL exclusivo
+2. Copie a url para ser usado posteriormente
+2. O cliente smee já está configurado na imagem docker utilizada. Então basta executa o cliente no container
+```console
+docker container exec -it jenkins_s bash
+smee -u https://URL_GERADA_NO_SMEE --path /github-webhook/ --port 8080
+```
+Este último comando inicia o cliente smee e o aponta para o servidor Jenkins (executando na porta 8080). Para o canal entre o Github e o Jenkins permanecer funcionando, deixe o comando em execução.
+4. Em seguida, configure o webhook no seu projeto do Github (Settings/Webhooks)
+    4.1. Cole o URL “smee” que você copiou na etapa acima (https://URL_GERADA_NO_SMEE)
+    4.2 Escolha o tipo de conteúdo application/jsoncomo
+    4.3 Escolha para o o webhook gerar gatinho para qualquer tipo de evento (Send me everything)
+    4.4 Por fim, clique em "Add Webhook"
+
+Agora você já pode configurar uma pipline (ou projeto) no Jenkins para receber gatilhos de push do Github.
 ---
 
 ## 4 Alguns testes
@@ -94,7 +113,7 @@ Automatizar a realização de tarefas em um nó depois que ocorre um push em um 
 ##### 4.2.2.1 Na máquina do nó
 1. Acesse o nó, clone o projeto do GitHub e escolho o branch que deseja utilizar
 ```console
-git clone https://github.com/your_user/jenkins_lab.git
+git clone https://github.com/YOUR_USER/jenkins_lab.git
 git checkout master
 ```
 2. Fique com a conexão aberta para verificar se a execução automática, feita pelo Jenkins, ocorreu corretamente.
@@ -108,7 +127,7 @@ git checkout master
     - Logo abaixo, em "Label Expression", procure pelo nome do nó e o selecione
 - Source Code Management:
     - Selecione "Git"
-        - Repositories: https://github.com/your_user/jenkins_lab.git
+        - Repositories: https://github.com/YOUR_USER/jenkins_lab.git
         - Credentials: Adicione as credenciais que tem acesso ao GitHub. No meu caso, adicionei um token (ver [Com criar token no GitHub](https://))
         - Branch Specifier: */master
 ---
@@ -119,8 +138,5 @@ git checkout master
 - Host Key Verification for SSH Agents. Disponível em: https://support.cloudbees.com/hc/en-us/articles/115000073552-Host-Key-Verification-for-SSH-Agents
 - How To Set Up Continuous Integration Pipelines in Jenkins on Ubuntu 16.04. Disponível em: https://www.digitalocean.com/community/tutorials/how-to-set-up-continuous-integration-pipelines-in-jenkins-on-ubuntu-16-04#create-a-personal-access-token-in-github
 - GitHub Permissions and API token Scopes for Jenkins. Disponível em: https://support.cloudbees.com/hc/en-us/articles/234710368-GitHub-Permissions-and-API-token-Scopes-for-Jenkins
-<<<<<<< HEAD
-- Triggering builds with webhooks behind a secure firewall. Dosponível em: https://www.jenkins.io/blog/2019/01/07/webhook-firewalls/
-=======
->>>>>>> 6cfa4c45c0c1310fd17fbf905b9a4a9260f97bef
+- Triggering builds with webhooks behind a secure firewall. Disponível em: https://www.jenkins.io/blog/2019/01/07/webhook-firewalls/
 
