@@ -29,6 +29,7 @@ E acesse a interface pelo endereço http://localhost:8080/
 
 Ao se conectar ao Jenkins, registre um novo usuário e instale os plugis sugeridos.
 *Imagem*
+
 ---
 
 ## 3 Configurações
@@ -45,7 +46,7 @@ Configurar nome, host, chave...
 Conecte-se ao nó clicando em "Launch Agent"
 *Imagem*
 
-Habilite como confiável a identidade do host clicando em "Trust SSH host key">"Yes"
+Habilite como confiável a identidade do host clicando em "Trust SSH host key" > "Yes"
 *Imagem*
 
 Verifique se o processo ocorreu corretamente olhando o log do nó
