@@ -6,10 +6,19 @@ pipeline {
 
   }
   stages {
-    stage('s1') {
+    stage('build') {
       steps {
-        echo 'Hello World'
+        echo 'Build stage'
         sh 'pwd'
+        cd projects
+      }
+    }
+
+    stage('test') {
+      steps {
+        echo 'Test stage'
+        sh pwd
+        python hw.p 
       }
     }
 

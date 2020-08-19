@@ -150,7 +150,6 @@ Na interface do Jenkins
     - Cole o seguinte código:
         ```shell
         pwd
-        cd projects
         python projects/hw.py
         ```
 5. Faça um push no repositório do GitHub
