@@ -23,7 +23,7 @@ docker ps
 > 
 Extraia a senha para acessar a interface web:
 ```console
-cat jenkins_home/secrets/initialAdminPassword  
+cat sudo jenkins_home/secrets/initialAdminPassword  
 ```
 E acesse a interface pelo endereço http://localhost:8080/
 
