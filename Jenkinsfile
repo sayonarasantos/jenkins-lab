@@ -11,7 +11,7 @@ pipeline {
       steps {
         echo '1st stage'
         sh 'pwd'
-        cd projects
+        sh 'cd projects'
       }
     }
 
