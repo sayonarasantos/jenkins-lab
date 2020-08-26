@@ -19,7 +19,7 @@ pipeline {
       steps {
         echo '2st stage'
         sh pwd
-        python hw.p y
+        python hw.py
       }
     }
 
