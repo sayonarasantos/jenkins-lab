@@ -1,26 +1,36 @@
 pipeline {
   agent {
     node {
-      label 'Node1-ssh'
+      label 'Node1'
     }
 
   }
+
   stages {
-    stage('build') {
+    stage('stage1') {
       steps {
-        echo 'Build stage'
+        echo '1st stage'
         sh 'pwd'
         cd projects
       }
     }
 
-    stage('test') {
+    stage('stage2') {
       steps {
-        echo 'Test stage'
+        echo '2st stage'
         sh pwd
         python hw.p 
       }
     }
 
+    stage('stage3') {
+      steps {
+        echo '3st stage'
+        sh 'pwd'
+        sh 'virtualenv -p /usr/bin/python3.8 envTest'
+        sh '''. envTest/bin/activate
+pip install poetry
+deactivate'''
+      }
   }
 }
