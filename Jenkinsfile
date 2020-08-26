@@ -19,7 +19,7 @@ pipeline {
       steps {
         echo '2st stage'
         sh pwd
-        python hw.p 
+        python hw.p y
       }
     }
 
@@ -29,8 +29,9 @@ pipeline {
         sh 'pwd'
         sh 'virtualenv -p /usr/bin/python3.8 envTest'
         sh '''. envTest/bin/activate
-pip install poetry
-deactivate'''
+        pip install poetry
+        deactivate'''
       }
+    }
   }
 }
