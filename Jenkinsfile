@@ -11,7 +11,7 @@ pipeline {
       steps {
         echo '1st stage'
         sh 'pwd'
-        sh 'cd projects'
+        sh 'ls projects'
       }
     }
 
@@ -19,7 +19,7 @@ pipeline {
       steps {
         echo '2st stage'
         sh 'pwd'
-        sh 'python hw.py'
+        sh 'python projects/hw.py'
       }
     }
 
