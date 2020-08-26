@@ -18,8 +18,8 @@ pipeline {
     stage('stage2') {
       steps {
         echo '2st stage'
-        sh pwd
-        python hw.py
+        sh 'pwd'
+        sh 'python hw.py'
       }
     }
 
