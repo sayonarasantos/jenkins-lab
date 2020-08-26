@@ -101,7 +101,7 @@ Como realizei os experimentos deste projeto em rede privada, não tinha IP públ
     >
     >   Connected https://URL_GENERATED_BY_SMEE
 
-#### 3.2.2. Adicionar Webhook no GitHub
+#### 3.2.2 Adicionar Webhook no GitHub
 _([GitHub](https://plugins.jenkins.io/github/))_
 
 Adicione um webhook do seu projeto do Github (Repositório do projeto > Settings > Webhooks) com a seguinte configuração
@@ -129,12 +129,12 @@ Depois de realizar o tópico 3.1, você pode criar um projeto que execute uma se
 - General
     - Selecione "Restrict where this project can be run"
     - Logo abaixo, em "Label Expression", procure pelo nome do nó e o selecione
-- Source Code Management:
+- Source Code Management
     - Selecione "None"
-- Build:
+- Build
     - Adicione um passo, clicando em "Add step build"
     - Clique em "Execute Shell"
-    - Cole o seguinte código:
+    - E escreva o script:
         ```shell
         mkdir dirA
         cd dirA
@@ -162,18 +162,25 @@ Depois de realizar o tópico 3.1, você pode criar um projeto para executar um p
 - General
     - Selecione "GitHub project"
     - Logo abaixo, em "Project url", cole o endereço do projeto no GitHub
+
+    ![pipelineConfig1](images/pipelineConfig1.png)
+
 - Pipeline
     - Definition: Selecione "Pipeline script from SCM"
-        - SCM: https://github.com/YOUR_USER/jenkins_lab.git
-        - Repository URL: endereço do projeto no GitHub
+        - SCM: Selecione "Git"
+        - Repositories: endereço do projeto no GitHub
         - Branch Specifier: Digite o caminho do branch
         - Script Path: Digite o caminho do arquivo Jenkinsfile no repositório do projeto
+    
+    ![pipelineConfig2](images/pipelineConfig2.png)
+    
     Ao finalizar a configuração, clique em "Save"
+
 4. Na página do projeto, clique em "Build Now"
 5. Na mesma página, na seção "Build History", clique no build criado "#1"
-6. Por fim, na página do build, clique em "Console Output" e verifique se os comandos em shell executaram corretamente
+6. Por fim, na página do build, clique em "Console Output" e verifique se o pipeline corretamente. Você pode também verificar o Status do pipeline:
 
-    ![jobConsole](images/jobConsole.png)
+    ![pipelineStatus](images/pipelineStatus.png)
 
 
 ### 4.3 Executar trabalhos depois de um push
@@ -183,8 +190,7 @@ _(Freesytle project - Shel script - Python - [Git](https://plugins.jenkins.io/gi
 Automatizar a realização de tarefas em um nó depois que ocorre um push em um projeto no GitHub.
 
 #### 4.3.2 Passos
-Na interface do Jenkins
-1. Configure o Webhook no Github (tópico 3.2.2.)
+1. Configure o Webhook no Github (tópico 3.2.2)
 2. Na página inicial do Jenkins, clique em "New item"
 3. Na página de criação que será aberta automaticamente, dê um nome ao projeto e escolha o tipo "Freestyle project" e clique em "OK" no canto inferior da página
 4. Na página de configuração que será aberta automaticamente, faça a seguinte configuração:
@@ -203,12 +209,13 @@ Na interface do Jenkins
     - Clique em "Execute Shell"
     - Cole o seguinte código:
         ```shell
-        pwd
         python projects/hw.py
         ```
 5. Faça um push no repositório do GitHub
-6. Execute o projeto em Projeto > "Build now"
-7. Verifique o log da execução me Projeto > Número do build > "Console Output"
+6. Execute o projeto em "Projeto > "Build now"
+7. Verifique o log da execução em "Projeto > Número do build > Console Output"
+
+    ![jobConsole2](images/jobConsole2.png)
 
 ---
 
