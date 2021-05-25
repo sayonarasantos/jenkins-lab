@@ -5,12 +5,17 @@
 - **Jenkins** é um software de automação, que viabiliza a integração contínua e a entrega contínua (CI/CD) de projetos
 - Versão da imagem utilizada neste projeto: [2.235.4](https://hub.docker.com/layers/jenkins/jenkins/2.235.4/images/sha256-63af286d97cd125b7735e6dae7cb504956facf3be91c0d332f724ea528a74121?context=explore)
 
+
 **Índice**
 - [Instalação do Jenkins com Docker](#1-instalação-com-docker)
 - [Configurações](#2-configurações)
-    - [Configuração de nó Jenkins](21-configuração-de-nó-jenkins)
-    
-[Referências](#referências)
+    - [Configuração de nó Jenkins](#21-configuração-de-nó-jenkins)
+    - [Configuração de serviço Webhook com o Jenkins em rede privada](#22-configuração-de-serviço-webhook-com-o-jenkins-em-rede-privada)
+- [Alguns testes](#3-alguns-testes)
+    - [Freesytle project com comandos Shell](#31-freesytle-project-com-comandos-shell)
+    - [Pipeline](#32-pipeline)
+    - [Freesytle project com gatilho GitHub](33-freesytle-project-com-gatilho-gitHub)
+- [Referências](#referências)
 
 
 ---
@@ -38,6 +43,7 @@ sudo cat jenkins_home/secrets/initialAdminPassword
 E acesse a interface pelo endereço http://localhost:8080/
 
 Ao se conectar ao Jenkins, registre um novo usuário e instale os plugis sugeridos.
+
 
 ---
 
@@ -89,8 +95,8 @@ Ao se conectar ao Jenkins, registre um novo usuário e instale os plugis sugerid
 4. Agora você pode desconectar o nó clicando em "Disconnect"
 
 
-### 3.2 Configuração de serviço Webhook com o Jenkins em rede privada
-#### 3.2.1 Configurar serviço de encaminhamento Webhook
+### 2.2 Configuração de serviço Webhook com o Jenkins em rede privada
+#### 2.2.1 Configurar serviço de encaminhamento Webhook
 Para configurar o gatilho de push través de Webhook do GitHub, você precisa ter um payload url para o GitHub postar as notificações de Push. O padrão do payload url do Jenkins é https://JENKINS_DOMAIN/github-webhook/.
 
 Como realizei os experimentos deste projeto em rede privada, não tinha IP público para o serviço Jenkins. Então, utilizei um serviço de encaminhamento de Webhook, o [Smee.io](https://smee.io/). A seguir, estão os passos realizados para utilizar o serviço:
@@ -110,7 +116,7 @@ Como realizei os experimentos deste projeto em rede privada, não tinha IP públ
     >
     >   Connected https://URL_GENERATED_BY_SMEE
 
-#### 3.2.2 Adicionar Webhook no GitHub
+#### 2.2.2 Adicionar Webhook no GitHub
 _([GitHub](https://plugins.jenkins.io/github/))_
 
 Adicione um webhook do seu projeto do Github (Repositório do projeto > Settings > Webhooks) com a seguinte configuração
@@ -121,17 +127,18 @@ Adicione um webhook do seu projeto do Github (Repositório do projeto > Settings
 
 Agora você já pode configurar um projeto no Jenkins para receber gatilhos de push do Github.
 
+
 ---
 
-## 4 Alguns testes
-### 4.1 Executa comandos Shell em um nó
-#### 4.1.1 Descrição
+## 3 Alguns testes
+### 3.1 Freesytle project com comandos Shell
+**Descrição**
 
 _(Freesytle project - Shel script - SSH)_
 
 Depois de realizar o tópico 3.1, você pode criar um projeto que execute uma sequência de comando em Shell em um nó.
 
-#### 4.1.2 Passos
+**Passos**
 1. Na página inicial do Jenkins, clique em "New item"
 2. Na ṕágina de criação em será aberta automaticamente, dê um nome ao projeto e escolha o tipo "Freestyle project" e clique em "OK" no canto inferior da página
 3. Na página de configuração em será aberta automaticamente, faça a seguinte configuração:
@@ -157,14 +164,14 @@ Depois de realizar o tópico 3.1, você pode criar um projeto que execute uma se
     ![jobConsole](images/jobConsole.png)
 
 
-### 4.2 Executar um pipeline com Jenkinsfile
-#### 4.2.1 Descrição
+### 3.2 Pipeline
+**Descrição**
 
 _(Pipeline - Python - [GitHub](https://plugins.jenkins.io/github/) - SSH)_
 
 Depois de realizar o tópico 3.1, você pode criar um projeto para executar um pipeline.
 
-#### 4.2.2 Passos
+**Passos**
 1. Na página inicial do Jenkins, clique em "New item"
 2. Na ṕgina de criação em será aberta automaticamente, dê um nome ao projeto e escolha o tipo "Pipeline" e clique em "OK" no canto inferior da página
 3. Na página de configuração em será aberta automaticamente, faça a seguinte configuração:
@@ -192,14 +199,15 @@ Depois de realizar o tópico 3.1, você pode criar um projeto para executar um p
     ![pipelineStatus](images/pipelineStatus.png)
 
 
-### 4.3 Executar trabalhos depois de um push
-#### 4.3.1 Descrição
+### 3.3 Freesytle project com gatilho GitHub
+**Descrição**
+
 _(Freesytle project - Shel script - Python - [Git](https://plugins.jenkins.io/git/) - [GitHub](https://plugins.jenkins.io/github/) - SSH)_
 
 Automatizar a realização de tarefas em um nó depois que ocorre um push em um projeto no GitHub.
 
-#### 4.3.2 Passos
-1. Configure o Webhook no Github (tópico 3.2.2)
+**Passos**
+1. Configure o Webhook no Github
 2. Na página inicial do Jenkins, clique em "New item"
 3. Na página de criação que será aberta automaticamente, dê um nome ao projeto e escolha o tipo "Freestyle project" e clique em "OK" no canto inferior da página
 4. Na página de configuração que será aberta automaticamente, faça a seguinte configuração:
@@ -225,6 +233,7 @@ Automatizar a realização de tarefas em um nó depois que ocorre um push em um 
 7. Verifique o log da execução em "Projeto > Número do build > Console Output"
 
     ![jobConsole2](images/jobConsole2.png)
+
 
 ---
 
