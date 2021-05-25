@@ -1,12 +1,21 @@
 # jenkins_lab
-## 1 Descrição
+
+**Descrição**
 - Repositório para registrar algumas práticas com o Jenkins
 - **Jenkins** é um software de automação, que viabiliza a integração contínua e a entrega contínua (CI/CD) de projetos
 - Versão da imagem utilizada neste projeto: [2.235.4](https://hub.docker.com/layers/jenkins/jenkins/2.235.4/images/sha256-63af286d97cd125b7735e6dae7cb504956facf3be91c0d332f724ea528a74121?context=explore)
 
+**Índice**
+- [Instalação do Jenkins com Docker](#1-instalação-com-docker)
+- [Configurações](#2-configurações)
+    - [Configuração de nó Jenkins](21-configuração-de-nó-jenkins)
+    
+[Referências](#referências)
+
+
 ---
 
-## 2 Instalação
+## 1 Instalação com Docker
 Na instalação por docker-compose, suba o container da aplicação Jenkins:
 ```console
 cd jenkins_lab/dockerJenkins
@@ -32,9 +41,9 @@ Ao se conectar ao Jenkins, registre um novo usuário e instale os plugis sugerid
 
 ---
 
-## 3 Configurações
-### 3.1 Configuração de acesso a um nó via SSH
-#### 3.1.1 Adicionar credencial SSH para acessar o nó
+## 2 Configurações
+### 2.1 Configuração de nó Jenkins
+#### 2.1.1 Adicionar credencial SSH para acessar o nó
 1. Vá para "Jenkins > Manage Jenkins > Security > Manage Credentials"
 2. Clique em "Global credentials" da *store* Jenkins e depois em clique em "Add Credentials"
 > Caminho: http://localhost:8080/credentials/store/system/domain/_/newCredentials
@@ -50,7 +59,7 @@ Ao se conectar ao Jenkins, registre um novo usuário e instale os plugis sugerid
 
     Ao finalizar a configuração, clique em "OK"
 
-#### 3.1.2 Adicionar o novo nó
+#### 2.1.2 Adicionar o novo nó
 1. Vá para "Jenkins > Manage Jenkins > System Configuration > Manage Nodes and Clouds"
 2. Clique em "New Node"
 3. Crie um nó com as seguintes configurações, depois clique me "OK":
@@ -68,7 +77,7 @@ Ao se conectar ao Jenkins, registre um novo usuário e instale os plugis sugerid
 
     Ao finalizar a configuração, clique em "Save"
 
-#### 3.1.3 Iniciar acesso ao nó
+#### 2.1.3 Iniciar acesso ao nó
 1. Acesse o nó criado
 > Caminho: Jenkins > Manage Jenkins > System Configuration > Manage Nodes and Clouds > ID do nó
 2. Habilite como confiável a identidade do host clicando em "Trust SSH host key" > "Yes"
