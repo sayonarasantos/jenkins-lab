@@ -14,7 +14,7 @@
 - [Alguns testes](#3-alguns-testes)
     - [Freesytle project com comandos Shell](#31-freesytle-project-com-comandos-shell)
     - [Pipeline](#32-pipeline)
-    - [Freesytle project com gatilho GitHub](33-freesytle-project-com-gatilho-gitHub)
+    - [Freesytle project com gatilho GitHub](#33-freesytle-project-com-gatilho-github)
 - [Referências](#referências)
 
 
@@ -52,16 +52,16 @@ Ao se conectar ao Jenkins, registre um novo usuário e instale os plugis sugerid
 #### 2.1.1 Adicionar credencial SSH para acessar o nó
 1. Vá para "Jenkins > Manage Jenkins > Security > Manage Credentials"
 2. Clique em "Global credentials" da *store* Jenkins e depois em clique em "Add Credentials"
-> Caminho: http://localhost:8080/credentials/store/system/domain/_/newCredentials
+    > Caminho: http://localhost:8080/credentials/store/system/domain/_/newCredentials
 3. Crie uma chave com as seguintes configurações:
-- Kind: Selecione "SSH Username with private key"
-- Scope: selecione "Global"
-- ID: Digite um identificador ou deixe em branco, assim um novo ID será gerado
-- Description: Opcional
-- Username: Digite o usuário que tem acesso a máquina com a chave SSH que será utilizada
-- Private Key: Selecione "Enter directly"
-    - Key: clique em "Add" e copie a chave privada
-- Passphrase: Digite a senha da chave
+    - Kind: Selecione "SSH Username with private key"
+    - Scope: selecione "Global"
+    - ID: Digite um identificador ou deixe em branco, assim um novo ID será gerado
+    - Description: Opcional
+    - Username: Digite o usuário que tem acesso a máquina com a chave SSH que será utilizada
+    - Private Key: Selecione "Enter directly"
+        - Key: clique em "Add" e copie a chave privada
+    - Passphrase: Digite a senha da chave
 
     Ao finalizar a configuração, clique em "OK"
 
@@ -69,15 +69,15 @@ Ao se conectar ao Jenkins, registre um novo usuário e instale os plugis sugerid
 1. Vá para "Jenkins > Manage Jenkins > System Configuration > Manage Nodes and Clouds"
 2. Clique em "New Node"
 3. Crie um nó com as seguintes configurações, depois clique me "OK":
-- Node name: Digite um identificador para o nó
-- Selecione "Permanent Agent"
+    - Node name: Digite um identificador para o nó
+    - Selecione "Permanent Agent"
 4. Você será redirecionado à página de configuração do nó, então preencha o formulário:
-- Remote root ditectory: Digite o caminho do diretório onde será instalada a *workspace* do Jenkins
-- Launch method: Selecione "Launch agents via SSH"
-- Host: Digite o endereço IP do nó
-- Credentials: Selecione a chave SSH cadastrada
-- Host Key Verification Strategy: Selecione "Manually trusted key verification strategy"
-- Selecione "Require manual verification of initial connection"
+    - Remote root ditectory: Digite o caminho do diretório onde será instalada a *workspace* do Jenkins
+    - Launch method: Selecione "Launch agents via SSH"
+    - Host: Digite o endereço IP do nó
+    - Credentials: Selecione a chave SSH cadastrada
+    - Host Key Verification Strategy: Selecione "Manually trusted key verification strategy"
+    - Selecione "Require manual verification of initial connection"
 
     ![nodeConfiguration](images/newNodeConfiguration.png)
 
@@ -85,13 +85,13 @@ Ao se conectar ao Jenkins, registre um novo usuário e instale os plugis sugerid
 
 #### 2.1.3 Iniciar acesso ao nó
 1. Acesse o nó criado
-> Caminho: Jenkins > Manage Jenkins > System Configuration > Manage Nodes and Clouds > ID do nó
+    > Caminho: Jenkins > Manage Jenkins > System Configuration > Manage Nodes and Clouds > ID do nó
 2. Habilite como confiável a identidade do host clicando em "Trust SSH host key" > "Yes"
 
     ![Trust SSH host key](images/TrustHost.png)
 
 3. Conecte-se ao nó clicando em "Launch Agent"
-> Em seguida, a página será redirecionado para o Log, e você deverá ver o trecho "Agent successfully connected and online", caso a conexão seja bem sucedida.
+    > Em seguida, a página será redirecionado para o Log, e você deverá ver o trecho "Agent successfully connected and online", caso a conexão seja bem sucedida.
 4. Agora você pode desconectar o nó clicando em "Disconnect"
 
 
@@ -142,21 +142,21 @@ Depois de realizar o tópico 3.1, você pode criar um projeto que execute uma se
 1. Na página inicial do Jenkins, clique em "New item"
 2. Na ṕágina de criação em será aberta automaticamente, dê um nome ao projeto e escolha o tipo "Freestyle project" e clique em "OK" no canto inferior da página
 3. Na página de configuração em será aberta automaticamente, faça a seguinte configuração:
-- General
-    - Selecione "Restrict where this project can be run"
-    - Logo abaixo, em "Label Expression", procure pelo nome do nó e o selecione
-- Source Code Management
-    - Selecione "None"
-- Build
-    - Adicione um passo, clicando em "Add step build"
-    - Clique em "Execute Shell"
-    - E escreva o script:
-        ```shell
-        mkdir dirA
-        cd dirA
-        echo "Hello World" > textA.txt
-        cat textA.txt
-        ```
+    - General
+        - Selecione "Restrict where this project can be run"
+        - Logo abaixo, em "Label Expression", procure pelo nome do nó e o selecione
+    - Source Code Management
+        - Selecione "None"
+    - Build
+        - Adicione um passo, clicando em "Add step build"
+        - Clique em "Execute Shell"
+        - E escreva o script:
+            ```shell
+            mkdir dirA
+            cd dirA
+            echo "Hello World" > textA.txt
+            cat textA.txt
+            ```
 4. Na página do projeto, clique em "Build Now"
 5. Na mesma página, na seção "Build History", clique no build criado "#1"
 6. Por fim, na página do build, clique em "Console Output" e verifique se os comandos em shell executaram corretamente
@@ -175,20 +175,20 @@ Depois de realizar o tópico 3.1, você pode criar um projeto para executar um p
 1. Na página inicial do Jenkins, clique em "New item"
 2. Na ṕgina de criação em será aberta automaticamente, dê um nome ao projeto e escolha o tipo "Pipeline" e clique em "OK" no canto inferior da página
 3. Na página de configuração em será aberta automaticamente, faça a seguinte configuração:
-- General
-    - Selecione "GitHub project"
-    - Logo abaixo, em "Project url", cole o endereço do projeto no GitHub
+    - General
+        - Selecione "GitHub project"
+        - Logo abaixo, em "Project url", cole o endereço do projeto no GitHub
 
-    ![pipelineConfig1](images/pipelineConfig1.png)
+        ![pipelineConfig1](images/pipelineConfig1.png)
 
-- Pipeline
-    - Definition: Selecione "Pipeline script from SCM"
-        - SCM: Selecione "Git"
-        - Repositories: endereço do projeto no GitHub
-        - Branch Specifier: Digite o caminho do branch
-        - Script Path: Digite o caminho do arquivo Jenkinsfile no repositório do projeto
-    
-    ![pipelineConfig2](images/pipelineConfig2.png)
+    - Pipeline
+        - Definition: Selecione "Pipeline script from SCM"
+            - SCM: Selecione "Git"
+            - Repositories: endereço do projeto no GitHub
+            - Branch Specifier: Digite o caminho do branch
+            - Script Path: Digite o caminho do arquivo Jenkinsfile no repositório do projeto
+
+        ![pipelineConfig2](images/pipelineConfig2.png)
     
     Ao finalizar a configuração, clique em "Save"
 
@@ -211,25 +211,25 @@ Automatizar a realização de tarefas em um nó depois que ocorre um push em um 
 2. Na página inicial do Jenkins, clique em "New item"
 3. Na página de criação que será aberta automaticamente, dê um nome ao projeto e escolha o tipo "Freestyle project" e clique em "OK" no canto inferior da página
 4. Na página de configuração que será aberta automaticamente, faça a seguinte configuração:
-- General
-    - Selecione "Restrict where this project can be run"
-    - Logo abaixo, em "Label Expression", procure pelo nome do nó e o selecione
-- Source Code Management
-    - Selecione "Git"
-        - Repositories: https://github.com/YOUR_USER/jenkins_lab.git
-        - Credentials: Adicione as credenciais que tem acesso ao GitHub. No meu caso, adicionei um token (ver [Create a Personal Access Token in GitHub](https://www.digitalocean.com/community/tutorials/how-to-set-up-continuous-integration-pipelines-in-jenkins-on-ubuntu-16-04#create-a-personal-access-token-in-github))
-        - Branch Specifier: */master
-- Build Triggers
-    - Selecione "GitHub hook trigger for GITScm polling"
-- Build:
-    - Adicione um passo, clicando em "Add step build"
-    - Clique em "Execute Shell"
-    - Cole o seguinte código:
-        ```shell
-        python projects/hw.py
-        ```
+    - General
+        - Selecione "Restrict where this project can be run"
+        - Logo abaixo, em "Label Expression", procure pelo nome do nó e o selecione
+    - Source Code Management
+        - Selecione "Git"
+            - Repositories: https://github.com/YOUR_USER/jenkins_lab.git
+            - Credentials: Adicione as credenciais que tem acesso ao GitHub. No meu caso, adicionei um token (ver [Create a Personal Access Token in GitHub](https://www.digitalocean.com/community/tutorials/how-to-set-up-continuous-integration-pipelines-in-jenkins-on-ubuntu-16-04#create-a-personal-access-token-in-github))
+            - Branch Specifier: */master
+    - Build Triggers
+        - Selecione "GitHub hook trigger for GITScm polling"
+    - Build:
+        - Adicione um passo, clicando em "Add step build"
+        - Clique em "Execute Shell"
+        - Cole o seguinte código:
+            ```shell
+            python projects/hw.py
+            ```
 5. Faça um push no repositório do GitHub
-6. Execute o projeto em "Projeto > "Build now"
+6. Execute o projeto em "Projeto > Build now"
 7. Verifique o log da execução em "Projeto > Número do build > Console Output"
 
     ![jobConsole2](images/jobConsole2.png)
