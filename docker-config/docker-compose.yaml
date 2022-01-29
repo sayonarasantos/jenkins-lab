@@ -1,0 +1,16 @@
+version: "3.8"
+
+services:
+  jenkins:
+    image: jenkins-server
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: jenkins
+    ports:
+      - "8080:8080"
+    volumes:
+      - jenkins_home:/var/jenkins_home
+
+volumes:
+  jenkins_home:
