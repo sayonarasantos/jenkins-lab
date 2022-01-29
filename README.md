@@ -206,9 +206,6 @@ Você irá criar um item Jenkins para executar um conjunto de tarefas.
 1. Na página inicial do Jenkins, clique em "New item"
 2. A página de criação será aberta automaticamente. Nessa página, dê um nome ao item, escolha o tipo "Pipeline" e clique em "OK" no canto inferior da página
 3. A página de configuração será aberta automaticamente. Nessa página, faça a seguinte configuração:
-    - General
-        - Selecione "GitHub project"
-        - Logo abaixo, em "Project url", cole o endereço do repositório no GitHub
     - Pipeline
         - Definition: Selecione "Pipeline script from SCM"
             - SCM: Selecione "Git"
