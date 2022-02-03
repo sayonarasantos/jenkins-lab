@@ -1,0 +1,156 @@
+def buildImage(String version=null) {
+    docker.withRegistry('https://${DOCKER_REGISTRY_URL}', DOCKER_REGISTRY_CREDENTIALS) {
+        def customImage = docker.build('${APP_NAME}:${ENV_NAME}', '${DOCKER_IMAGE_OPTIONS}')
+
+        customImage.push()
+
+        if (version?.trim()) {
+            customImage.push("${ENV_NAME}-${version}")
+        }
+    }
+
+    sh 'docker image rm ${APP_NAME}:${ENV_NAME} ${DOCKER_REGISTRY_URL}/${APP_NAME}:${ENV_NAME}'
+
+    if (version?.trim()) {
+        sh "docker image rm ${DOCKER_REGISTRY_URL}/${APP_NAME}:${ENV_NAME}-${version}"
+    }
+}
+
+
+def deployContainer() {
+    sshagent (credentials: [DEPLOYMENT_SSH_CREDENTIAL]) {
+        sh '''
+            ssh -o StrictHostKeyChecking=no ${DEPLOYMENT_IP} "docker container down ${APP_NAME} \
+            && docker container rm ${APP_NAME} \
+            && docker image rm ${DOCKER_REGISTRY_URL}/${APP_NAME}:${ENV_NAME} \
+            && docker run --name ${APP_NAME} \
+            --env-file /opt/${APP_NAME} ${DOCKER_REGISTRY_URL}/${APP_NAME}:${ENV_NAME} \
+            && docker ps | grep ${APP_NAME}"
+        '''
+    }
+}
+
+
+def sendNotification() {
+    sh "curl -i -X GET \
+        'https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${CHAT_ID}&parse_mode=Markdown&text=App: ${APP_NAME} \
+        %0ABranch: ${BRANCH_NAME} \
+        %0AStatus: ${currentBuild.result} \
+        %0ABuild Number: ${BUILD_NUMBER} \
+        %0ABuild Link: [UI%1BJenkins](${BUILD_URL})'"
+}
+
+
+pipeline {
+
+    agent any
+
+    options {
+        buildDiscarder(logRotator(numToKeepStr: '2', artifactNumToKeepStr: '2'))
+        disableConcurrentBuilds()
+        skipDefaultCheckout()
+    }
+
+    // General environment variables
+    environment {
+        APP_NAME = 'app3'
+        TEST_BRANCH = 'develop'
+        PROD_TAG = '*'
+
+        // credentials
+        DOCKER_REGISTRY_URL = credentials('ecr-url')
+        DOCKER_REGISTRY_CREDENTIALS = 'ecr:us-east-2:ecr-credentials'
+        DEPLOYMENT_SSH_CREDENTIAL = 'ssh-key'
+        BOT_TOKEN = credentials('telegram-bot-token')
+        CHAT_ID = credentials('telegram-chat-id')
+    }
+
+    stages {
+        stage('Checkout repository') {
+            steps {
+                checkout([$class: 'GitSCM',
+                    branches: scm.branches,
+                    extensions: [],
+                    userRemoteConfigs: scm.userRemoteConfigs
+                ])
+            }
+        }
+
+        stage('CI/CD: Test environment') {
+            when {
+                branch TEST_BRANCH
+            }
+            // Test environment variables
+            environment {
+                ENV_NAME = 'test'
+                DOCKER_IMAGE_OPTIONS = "--file ./projects/5-docker-multibranch-pipeline/Dockerfile --build-arg APP_NAME=${APP_NAME} --build-arg ENV_NAME=${ENV_NAME} ./projects/5-docker-multibranch-pipeline"
+                DEPLOYMENT_IP = credentials('test-vm-ip')
+            }
+            stages {
+                stage('Build') {
+                    steps {
+                        buildImage()
+                    }
+                }
+                stage('Deploy') {
+                    steps {
+                        deployContainer()
+                    }
+                }
+            }
+        }
+
+        stage('CI/CD: Prod environment') {
+            when {
+                tag PROD_TAG
+                beforeInput true
+            }
+            // Production environment variables
+            environment {
+                ENV_NAME = 'prod'
+                DOCKER_IMAGE_OPTIONS = "--file ./projects/5-docker-multibranch-pipeline/Dockerfile --build-arg APP_NAME=${APP_NAME} --build-arg ENV_NAME=${ENV_NAME} ./projects/5-docker-multibranch-pipeline"
+                DEPLOYMENT_IP = credentials('prod-vm-ip')
+                PROD_VERSION = "${sh(script: 'git describe --tags', returnStdout: true).trim()}"
+            }
+            input { 
+                message "Select the steps to be done now:"
+                parameters {
+                    booleanParam(name: 'ENABLE_BUILD', defaultValue: false, description: 'Build container image')
+                    booleanParam(name: 'ENABLE_DEPLOY', defaultValue: false, description: 'Deploy application')
+                }
+            }
+            stages {
+                stage('Build') {
+                    when { expression { return ENABLE_BUILD } }
+                    steps {
+                        buildImage('${PROD_VERSION}')
+                    }
+                }
+                stage('Deploy') {
+                    when { expression { return ENABLE_DEPLOY } }
+                    steps {
+                        deployContainer()
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            sendNotification()
+        }
+
+        failure {
+            sendNotification()
+        }
+
+        always {
+            sh 'docker system prune -f'
+
+            dir("${WORKSPACE}@tmp") { deleteDir() }
+            
+            deleteDir()
+        }
+    }
+}

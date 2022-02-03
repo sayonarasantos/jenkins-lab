@@ -20,9 +20,11 @@
     - [Configuração de nó Jenkins](#21-configuração-de-nó-jenkins)
     - [Configuração de serviço Webhook com o Jenkins em rede privada](#22-configuração-de-serviço-webhook-com-o-jenkins-em-rede-privada-apenas-para-estudo)
 - [Alguns testes](#3-alguns-testes)
-    - [Freesytle project com comandos Shell](#31-freesytle-project-com-comandos-shell)
-    - [Pipeline](#32-pipeline)
-    - [Freesytle project com gatilho GitHub](#33-freesytle-project-com-gatilho-github)
+    - [Simples freestyle project com comandos Shell](#31-simples-freestyle-project-com-comandos-shell)
+    - [Simples pipeline com script Python](#32-simples-pipeline-com-script-python)
+    - [Simples freestyle project com gatilho GitHub](#33-simples-freestyle-project-com-gatilho-github)
+    - [Pipeline para projeto em Docker](#34-pipeline-para-projeto-em-docker)
+    - [Multibranch Pipeline para projeto em Docker](#35-multibranch-pipeline-para-projeto-em-docker)
 - [Extra](#extra)
 - [Referências](#referências)
 
@@ -161,9 +163,9 @@ Por fim, clique em "Add Webhook". Agora você já pode configurar um item no Jen
 
 ## 3. Alguns testes
 
-### 3.1. Freesytle project com comandos Shell
+### 3.1. Simples freestyle project com comandos Shell
 
-_Palavras-chaves: Freesytle project - Shel script - SSH_
+_Palavras-chaves: Freestyle project - Shel script - SSH_
 
 **Descrição**
 
@@ -193,7 +195,7 @@ Você irá criar um item Jenkins que executa uma sequência de comando em Shell 
 
     ![jobConsole](images/jobConsole.png)
 
-### 3.2. Pipeline
+### 3.2. Simples pipeline com script Python
 
 _Palavras-chaves: Pipeline - Python - [GitHub](https://plugins.jenkins.io/github/) - SSH_
 
@@ -222,10 +224,9 @@ Você irá criar um item Jenkins para executar um conjunto de tarefas.
 
     ![pipelineStatus](images/pipelineStatus.png)
 
+### 3.3. Simples freestyle project com gatilho GitHub
 
-### 3.3. Freesytle project com gatilho GitHub
-
-_Palavras-chaves: Freesytle project - Shel script - Python - [Git](https://plugins.jenkins.io/git/) - [GitHub](https://plugins.jenkins.io/github/) - SSH_
+_Palavras-chaves: Freestyle project - Shel script - Python - [Git](https://plugins.jenkins.io/git/) - [GitHub](https://plugins.jenkins.io/github/) - SSH_
 
 **Descrição**
 
@@ -254,12 +255,28 @@ Você irá automatizar a realização de tarefa em um nó depois que ocorre um p
         - Clique em "Execute Shell"
         - Cole o seguinte código:
             ```shell
-            python projects/1-python-pipeline/hw.py
+            python projects/3-python-freestyle/hello-world.py
             ```
 5. Faça um push no repositório do GitHub
 6. Na página do item Jenkins, na seção "Build History", clique no número do build criado parar ver as saídas dele ("Console Output")
 
     ![jobConsole2](images/jobConsole2.png)
+
+### 3.4. Pipeline para projeto em Docker
+
+_Palavras-chaves: Pipeline - Docker - [Git](https://plugins.jenkins.io/git/) - SSH - Google Chat - Shell Script_
+
+**Descrição**
+
+Esse pipeline pega o código de um branch específico, constrói imagem Docker, envia essa imagem para um repositório privado, atualiza o container Docker numa VM remota com essa nova imagem e notifica o estado final do pipeline em salas do Google Chat.
+
+### 3.5. Multibranch Pipeline para projeto em Docker
+
+_Palavras-chaves: Multibranch Pipeline - Docker - [Git](https://plugins.jenkins.io/git/) - SSH - Telegram - Shell Script_
+
+**Descrição**
+
+Esse pipeline pega o código de vários branches e tags, constrói imagem Docker, envia essa imagem para um repositório privado, atualiza o container Docker numa VM remota com essa nova imagem e notifica o estado final do pipeline em um grupo do Telegram.
 
 
 ---
@@ -286,4 +303,6 @@ Você irá automatizar a realização de tarefa em um nó depois que ocorre um p
 - How To Set Up Continuous Integration Pipelines in Jenkins on Ubuntu 16.04. Disponível em: https://www.digitalocean.com/community/tutorials/how-to-set-up-continuous-integration-pipelines-in-jenkins-on-ubuntu-16-04#create-a-personal-access-token-in-github
 - GitHub Permissions and API token Scopes for Jenkins. Disponível em: https://support.cloudbees.com/hc/en-us/articles/234710368-GitHub-Permissions-and-API-token-Scopes-for-Jenkins
 - Triggering builds with webhooks behind a secure firewall. Disponível em: https://www.jenkins.io/blog/2019/01/07/webhook-firewalls/
+- How to write Pipeline to discard old builds?. Disponível em: https://stackoverflow.com/questions/39542485/how-to-write-pipeline-to-discard-old-builds/44155346#44155346
+- https://plugins.jenkins.io/build-discarder/
 
