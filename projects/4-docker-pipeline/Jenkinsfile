@@ -1,0 +1,81 @@
+pipeline {
+
+    agent any
+
+    options {
+        buildDiscarder(logRotator(numToKeepStr: '2', artifactNumToKeepStr: '2'))
+        disableConcurrentBuilds()
+        skipDefaultCheckout()
+    }
+
+    environment {
+        APP_NAME = 'app2'
+
+        // credentials
+        DOCKER_REGISTRY_URL = credentials('ecr-url')
+        DOCKER_REGISTRY_CREDENTIALS = 'ecr:us-east-2:ecr-credentials'
+        DEPLOYMENT_SSH_CREDENTIAL = 'ssh-key'
+        DEPLOYMENT_IP = credentials('machine-ip')
+        CHAT_ROOMS = 'id:chat-room1, id:chat-room2'
+    }
+
+    stages {
+        stage('Checkout repository') {
+            steps {
+                git branch: 'master',
+                    credentialsId: 'github-credentials',
+                    url: 'https://github.com/sayonarasantos/jenkins-lab.git'
+            }
+        }
+
+        stage('Build docker image') {
+            environment { GIT_HASH = "${sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()}" }
+            steps {
+                script {
+                    docker.withRegistry('https://${DOCKER_REGISTRY_URL}', DOCKER_REGISTRY_CREDENTIALS) {
+                        def customImage = docker.build('${APP_NAME}:latest', '--file ./projects/4-docker-pipeline/Dockerfile --build-arg APP_NAME=${APP_NAME} ./projects/4-docker-pipeline')
+
+                        customImage.push()
+                        customImage.push("${GIT_HASH}")
+                    }
+                }
+
+                sh 'docker image rm ${APP_NAME}:latest ${DOCKER_REGISTRY_URL}/${APP_NAME}:latest ${DOCKER_REGISTRY_URL}/${APP_NAME}:${GIT_HASH}'
+            }
+        }
+
+        stage('Deploy docker container') {
+            steps {
+                sshagent (credentials: [DEPLOYMENT_SSH_CREDENTIAL]) {
+                    sh '''
+                        ssh -o StrictHostKeyChecking=no ${DEPLOYMENT_IP} "docker container down ${APP_NAME} \
+                        && docker container rm ${APP_NAME} \
+                        && docker image rm ${DOCKER_REGISTRY_URL}/${APP_NAME}:latest \
+                        && docker run --name ${APP_NAME} --env-file /opt/${APP_NAME} ${DOCKER_REGISTRY_URL}/${APP_NAME}:latest \
+                        && docker ps | grep ${APP_NAME}"
+                    '''
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            googlechatnotification url: CHAT_ROOMS,
+                message: "App: ${APP_NAME} \nStatus: ${currentBuild.result} \nBuild Number: ${BUILD_NUMBER} \nBuild Link: ${BUILD_URL}"
+        }
+
+        failure {
+            googlechatnotification url: CHAT_ROOMS,
+                message: "App: ${APP_NAME} \nStatus: ${currentBuild.result} \nBuild Number: ${BUILD_NUMBER} \nBuild Link: ${BUILD_URL}"
+        }
+
+        always {
+            sh 'docker system prune -f'
+
+            dir("${WORKSPACE}@tmp") { deleteDir() }
+
+            deleteDir()
+        }
+    }
+}
