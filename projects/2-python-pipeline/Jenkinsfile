@@ -1,0 +1,37 @@
+pipeline {
+
+    agent {
+        node {
+            label 'Node1'
+        }
+    }
+
+    stages {
+        stage('stage1') {
+            steps {
+                echo '1st stage'
+                sh 'pwd'
+                sh 'ls projects'
+            }
+        }
+
+        stage('stage2') {
+            steps {
+                echo '2st stage'
+                sh 'pwd'
+                sh 'python projects/2-python-pipeline/hw.py'
+            }
+        }
+
+        stage('stage3') {
+            steps {
+                echo '3st stage'
+                sh 'pwd'
+                sh 'virtualenv -p /usr/bin/python3.8 envTest'
+                sh '''. envTest/bin/activate
+                pip install poetry
+                deactivate'''
+            }
+        }
+    }
+}
