@@ -1,0 +1,184 @@
+def sendNotification(String moreInfos=null) {
+    googlechatnotification url: CHAT_ROOMS,
+        message: "Branch: ${BRANCH_NAME} \nStatus: ${currentBuild.result} \nBuild Number: ${BUILD_NUMBER} \nBuild Link: ${BUILD_URL} \n${moreInfos}"
+}
+
+
+def buildArtifacts(String buildType) {
+    sh """
+        docker container exec ${APP_NAME} yarn android:${buildType}
+        ls ${APP_PATH}/* -lha
+    """
+}
+
+
+def uploadArtifacts() {
+    withAWS(region: S3_REGION, credentials: S3_CREDENTIALS) {
+        s3Upload(bucket: S3_BUCKET, path: "${S3_PATH}/${ENV_NAME}", includePathPattern: "${APP_VERSION}-${APP_NAME}.*", acl:'PublicRead')
+    }
+}
+
+
+pipeline {
+
+    agent any
+
+    options {
+        buildDiscarder(logRotator(numToKeepStr: '2', artifactNumToKeepStr: '2'))
+        disableConcurrentBuilds()
+        skipDefaultCheckout()
+    }
+
+    // General environment variables
+    environment {
+        APP_NAME = 'app4'
+        TEST_BRANCH = 'develop'
+        PROD_TAG = 'v*'
+        S3_REGION = 'us-east-2'
+        S3_BUCKET = 'apps'
+        S3_PATH = 'mobile'
+        CDN_ADDRESS = 'https://cdn.apps.com'
+        IMAGE_TAG = 'latest'
+
+        // credentials
+        ECR_URL = credentials('ecr-url')
+        ECR_CREDENTIALS = 'ecr:us-east-2:ecr-credentials'
+        CHAT_ROOMS = 'id:chat-room1, id:chat-room2'
+        S3_CREDENTIALS = 'lead-main-jenkins-s3-keys'
+    }
+
+    stages {
+        stage('Checkout repository') {
+            steps {
+                checkout([$class: 'GitSCM',
+                    branches: scm.branches,
+                    extensions: [],
+                    userRemoteConfigs: scm.userRemoteConfigs
+                ])
+            }
+        }
+
+        stage('Create container to build artifacts') {
+            environment {
+                USER_ID = "${sh(script: 'id -u', returnStdout: true).trim()}"
+                USER_GROUP = "${sh(script: 'id -g', returnStdout: true).trim()}"
+            }
+            steps {
+                script {
+                    docker.withRegistry('https://${ECR_URL}', ECR_CREDENTIALS) {
+                        def customImage = docker.image('${APP_NAME}:${IMAGE_TAG}')
+                        customImage.pull()
+                    }
+                }
+                sh '''
+                    docker container run -td -u ${USER_ID}:${USER_GROUP} -v ${PWD}/:/project/ --name ${APP_NAME} ${ECR_URL}/${APP_NAME}:${IMAGE_TAG}
+                    docker container exec ${APP_NAME} yarn
+                '''
+            }
+            
+        }
+
+        stage('CI/CD: Test') {
+            when {
+                branch TEST_BRANCH
+            }
+            // Test environment variables
+            environment {
+                ENV_NAME = 'test'
+                APP_PATH = 'android/app/build/outputs/apk/staging/'
+                APP_VERSION = "${sh(script: 'sed -n "/VERSION_NAME_ENV/p" .env.staging | cut -d "=" -f2', returnStdout: true).trim()}"
+            }
+            stages {
+                stage('Build APK') {
+                    steps {
+                        buildArtifacts('build:staging')
+                    }
+                }
+                stage('Upload artifacts to S3') {
+                    steps {
+                        sh '''
+                            mv ${APP_PATH}/*.apk ${APP_VERSION}-${APP_NAME}.apk
+                            ls ${APP_VERSION}-${APP_NAME}.* -lha
+                        '''
+                        uploadArtifacts()
+                    }
+                }
+            }
+            post {
+                success {
+                    sendNotification("APK URL: ${CDN_ADDRESS}/${S3_PATH}/${ENV_NAME}/${APP_VERSION}-${APP_NAME}.apk")
+                }
+            }
+        }
+
+
+        stage('CI/CD: Prod') {
+            when {
+                tag PROD_TAG
+            }
+            // Production environment variables
+            environment {
+                ENV_NAME = 'prod'
+                APP_PATH = 'android/app/build/outputs/*/release/'
+                APP_VERSION = "${sh(script: 'sed -n "/VERSION_NAME_ENV/p" .env.prod | cut -d "=" -f2', returnStdout: true).trim()}"
+            }
+            stages {
+                stage('Build APK') {
+                    steps {
+                        buildArtifacts('build:release')
+                    }
+                }
+                stage('Build Bundle') {
+                    steps {
+                        buildArtifacts('bundle:release')
+                    }
+                }
+                stage('Upload artifacts to S3') {
+                    steps {
+                        sh '''
+                            mv ${APP_PATH}/*.apk ${APP_VERSION}-${APP_NAME}.apk
+                            mv ${APP_PATH}/*.aab ${APP_VERSION}-${APP_NAME}.aab
+                            ls ${APP_VERSION}-${APP_NAME}.* -lha
+                        '''
+                        uploadArtifacts()
+                    }
+                }
+            }
+            post {
+                success {
+                    sendNotification("APK URL: ${CDN_ADDRESS}/${S3_PATH}/${ENV_NAME}/${APP_VERSION}-${APP_NAME}.apk \nBundle URL: ${CDN_ADDRESS}/${S3_PATH}/${ENV_NAME}/${APP_VERSION}-${APP_NAME}.aab")
+                }
+            }
+        }
+    }
+
+    post {
+        failure {
+            sendNotification()
+        }
+
+        always {
+            script {
+                try {
+                    sh '''
+                        docker container stop ${APP_NAME}
+                        docker container rm ${APP_NAME}
+                        docker ps -a
+                        docker image rm ${ECR_URL}/${APP_NAME}:${IMAGE_TAG}
+                        docker images
+                    '''
+                } catch (er) {
+                    echo er.getMessage()
+                    sh '''
+                        docker container prune -f
+                        docker ps -a
+                        docker image prune -f
+                        docker images
+                    '''
+                }
+            }
+            dir("${WORKSPACE}@tmp") {deleteDir()}
+            deleteDir()
+        }
+    }
+}
