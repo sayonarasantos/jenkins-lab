@@ -1,0 +1,189 @@
+def buildImage() {
+    docker.withRegistry('https://${ECR_URL}', ECR_CREDENTIALS) {
+        def customImage = docker.build('${APP_NAME}:${ENV_NAME}', '${DOCKER_IMAGE_OPTIONS} .')
+
+        customImage.push()
+
+        if (version?.trim()) {
+            customImage.push("${ENV_NAME}-${version}")
+        }
+    }
+
+    sh 'docker image rm ${APP_NAME}:${ENV_NAME} ${ECR_URL}/${APP_NAME}:${ENV_NAME}'
+
+    if (version?.trim()) {
+        sh "docker image rm ${ECR_URL}/${APP_NAME}:${ENV_NAME}-${version}"
+    }
+}
+
+
+def sendNotification() {
+    sh "curl -i -X GET \
+        'https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${CHAT_ID}&parse_mode=Markdown&text=App: ${APP_NAME} \
+        %0ABranch: ${BRANCH_NAME} \
+        %0AStatus: ${currentBuild.result} \
+        %0ABuild Number: ${BUILD_NUMBER} \
+        %0ABuild Link: [UI%1BJenkins](${BUILD_URL})'"
+}
+
+
+def checkoutTerraformRepo() {
+    git branch: TERRAFORM_GIT_BRANCH,
+        credentialsId: TERRAFORM_GIT_CREDENTIALS,
+        url: TERRAFORM_GIT_URL
+}
+
+
+def applyTerraform() {
+    withAWS(region: AWS_REGION, credentials: AWS_CREDENTIALS) {
+        sh '''
+            cd ${ENV_NAME}
+            pwd
+            terraform init -input=false
+            terraform plan -destroy -input=false
+            terraform destroy -auto-approve -input=false
+            terraform plan -input=false
+            terraform apply -auto-approve -input=false
+        '''
+    }
+}
+
+
+pipeline {
+
+    agent any
+
+    options {
+        buildDiscarder(logRotator(numToKeepStr: '2', artifactNumToKeepStr: '2'))
+        disableConcurrentBuilds()
+        skipDefaultCheckout()
+    }
+
+    // General environment variables
+    environment {
+        APP_NAME = 'app5'
+        TEST_BRANCH = 'develop'
+        PROD_TAG = 'v*'
+        AWS_REGION = 'us-east-2'
+        TERRAFORM_GIT_URL = 'https://github.com/sayonarasantos/lambda-lab.git'
+
+        // credentials
+        ECR_URL = credentials('ecr-url')
+        ECR_CREDENTIALS = 'ecr:us-east-2:ecr-credentials'
+        BOT_TOKEN = credentials('telegram-bot-token')
+        CHAT_ID = credentials('telegram-chat-id')
+        AWS_CREDENTIALS = 'aws-keys'
+        TERRAFORM_GIT_CREDENTIALS = 'git-keys'
+    }
+
+    stages {
+        stage('Checkout app repository') {
+            steps {
+                checkout([$class: 'GitSCM',
+                    branches: scm.branches,
+                    extensions: [[$class: 'GitLFSPull']],
+                    userRemoteConfigs: scm.userRemoteConfigs
+                ])
+            }
+        }
+
+        stage('[TEST] Deploy image to ECR') {
+            when {
+                branch TEST_BRANCH
+            }
+            // Test environment variables
+            environment {
+                ENV_NAME = 'test'
+                DOCKER_IMAGE_OPTIONS = "--build-arg APP_NAME=${APP_NAME}"
+                GIT_HASH = "${sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()}"
+            }
+            steps {
+                buildImage('${GIT_HASH}')
+            }
+        }
+
+        stage('PROD] Deploy image to ECR') {
+            when {
+                tag PROD_TAG
+            }
+            // Production environment variables
+            environment {
+                ENV_NAME = 'prod'
+                DOCKER_IMAGE_OPTIONS = "--build-arg APP_NAME=${APP_NAME}"
+                PROD_VERSION = "${sh(script: 'git describe --tags', returnStdout: true).trim()}"
+            }
+            steps {
+                buildImage('${PROD_VERSION}')
+            }
+        }
+
+        stage('[TEST] Build Lambda function') {
+            when {
+                branch TEST_BRANCH
+            }
+            // Test environment variables
+            environment {
+                ENV_NAME = 'test'
+                TERRAFORM_GIT_BRANCH = 'develop'
+            }
+            stages {
+                stage('Checkout terrafom repository') {
+                    steps {
+                        checkoutTerraformRepo()
+                    }
+                }
+                stage('Apply terraform') {
+                    steps {
+                        applyTerraform()
+                    }
+                }
+            }
+        }
+
+        stage('[PROD] Build Lambda function') {
+            when {
+                tag PROD_TAG
+            }
+            // Test environment variables
+            environment {
+                ENV_NAME = 'prod'
+                TERRAFORM_GIT_BRANCH = 'main'
+            }
+            stages {
+                stage('Checkout terrafom repository') {
+                    steps {
+                        checkoutTerraformRepo()
+                    }
+                }
+                stage('Apply terraform') {
+                    steps {
+                        applyTerraform()
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        failure {
+            sendNotification()
+        }
+
+        success {
+            sendNotification()
+        }
+        
+        always {
+            sh '''
+                docker container prune -f
+                docker ps -a
+                docker image prune -f
+                docker images
+            '''
+
+            dir("${WORKSPACE}@tmp") {deleteDir()}
+            
+            deleteDir()
+        }
+    }
+}
